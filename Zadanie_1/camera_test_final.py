@@ -84,10 +84,12 @@ def main():
         part2 = mosaic[0:h,   w:2*w]
         part3 = mosaic[h:2*h, 0:w]
 
-        # 3) kernel 3x3 (sharpen) na cast 1
-        kernel = np.array([[0, -1,  0],
-                           [-1, 5, -1],
-                           [0, -1,  0]], dtype=np.float32)
+        # 3) vyhladzovací (priemerovací) filter 3x3 na cast 1
+        #    Každý pixel sa nahradí priemerom jeho 3x3 okolia -> zjemní šum a vyhladí 	obraz.
+        kernel = (1.0 / 9.0) * np.array([[1, 1, 1],
+                                 [1, 1, 1],
+                                 [1, 1, 1]], dtype=np.float32)
+
         part1[:, :] = cv2.filter2D(part1, -1, kernel, borderType=cv2.BORDER_REPLICATE)
 
         # 4) rotacia cast 2 o 90° pomocou for-cyklu
