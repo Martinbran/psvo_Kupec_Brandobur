@@ -12,8 +12,8 @@ CHESSBOARD_SIZE = (7, 5)
 SQUARE_SIZE = 0.024
 # ==============================================
 
-IMAGES_DIR = "./FOTKY_SACHOVNICA3"   
-OUT_DIR = "./CALIB_OUT3"
+IMAGES_DIR = "./FOTKY_SACHOVNICA_bez_resize"   
+OUT_DIR = "./CALIB_OUT4"
 os.makedirs(OUT_DIR, exist_ok=True)
 
 # 3D body šachovnice v rovine Z=0

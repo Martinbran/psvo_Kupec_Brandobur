@@ -5,9 +5,9 @@ import os
 import shutil
 
 SAVE_DIR = "./FOTKY_SACHOVNICA_bez_resize"
-RESIZE_TO = (240, 240)   # ak nechceš resize, nastav na None
-EXPOSURE_US = 50000
-NUM_SHOTS = 10
+RESIZE_TO = (None)   # ak nechceš resize, nastav na None
+EXPOSURE_US = 500000
+NUM_SHOTS = 15
 
 def main():
     if os.path.isdir(SAVE_DIR):
