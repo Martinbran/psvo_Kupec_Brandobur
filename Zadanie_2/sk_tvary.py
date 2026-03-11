@@ -6,7 +6,6 @@ EXPOSURE_US = 500000
 RESIZE_TO = (1200, 900)
 WINDOW_NAME = "Detekcia tvarov - XIMEA"
 
-# stabilizacia
 last_counts = []
 stable_result = None
 STABLE_FRAMES = 3
@@ -15,23 +14,37 @@ STABLE_FRAMES = 3
 def detect_shapes(frame):
     output = frame.copy()
 
-    # grayscale + lepsie vyhladenie
+    # grayscale pre Hough kruznice
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray_blur = cv2.GaussianBlur(gray, (5, 5), 0)
     gray_blur = cv2.medianBlur(gray_blur, 5)
+
+    # HSV maska pre farebne objekty
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    saturation = hsv[:, :, 1]
+
+    # farebne papiere maju vyssiu saturaciu ako stena
+    _, color_mask = cv2.threshold(saturation, 55, 255, cv2.THRESH_BINARY)
+
+    kernel = np.ones((5, 5), np.uint8)
+    color_mask = cv2.morphologyEx(color_mask, cv2.MORPH_CLOSE, kernel)
+    color_mask = cv2.morphologyEx(color_mask, cv2.MORPH_OPEN, kernel)
 
     circle_count = 0
     triangle_count = 0
     square_count = 0
     rectangle_count = 0
 
+    # =========================
+    # 1. DETEKCIA KRUZNIC
+    # =========================
     circles = cv2.HoughCircles(
         gray_blur,
         cv2.HOUGH_GRADIENT,
         dp=1.2,
         minDist=80,
         param1=100,
-        param2=35,
+        param2=32,
         minRadius=20,
         maxRadius=300
     )
@@ -42,44 +55,45 @@ def detect_shapes(frame):
         circles = np.uint16(np.around(circles))
 
         for i in circles[0, :]:
-            x, y, r = i[0], i[1], i[2]
+            x, y, r = int(i[0]), int(i[1]), int(i[2])
+
             circle_count += 1
-
             cv2.circle(output, (x, y), r, (0, 255, 0), 2)
-            cv2.circle(output, (x, y), 3, (0, 0, 255), -1)
 
-            cv2.putText(output, "Kruznica", (x - 40, y - r - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            # cervena bodka - stred / tazisko
+            cv2.circle(output, (x, y), 4, (0, 0, 255), -1)
 
-            cv2.putText(output, f"S({x},{y})", (x + 10, y),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 1)
+            cv2.putText(
+                output,
+                "Kruznica",
+                (x - 45, y - r - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (0, 255, 0),
+                2
+            )
 
-            cv2.circle(circle_mask, (x, y), r + 8, 255, -1)
+            cv2.circle(circle_mask, (x, y), r + 10, 255, -1)
 
-    edges = cv2.Canny(gray_blur, 40, 120)
+    # =========================
+    # 2. DETEKCIA OSTATNYCH TVAROV
+    # =========================
+    # odstran kruznice z masky, aby sa nehodnotili este raz cez kontury
+    shapes_mask = cv2.bitwise_and(color_mask, cv2.bitwise_not(circle_mask))
 
-    # jemne spojenie hran
-    kernel = np.ones((3, 3), np.uint8)
-    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
-
-    edges_no_circles = cv2.bitwise_and(edges, cv2.bitwise_not(circle_mask))
-
-    contours, _ = cv2.findContours(edges_no_circles, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(shapes_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        if area < 500:
+        if area < 1500:
             continue
 
         perimeter = cv2.arcLength(cnt, True)
-        approx = cv2.approxPolyDP(cnt, 0.03 * perimeter, True)
+        approx = cv2.approxPolyDP(cnt, 0.025 * perimeter, True)
 
-        M = cv2.moments(cnt)
-        if M["m00"] == 0:
-            continue
-
-        cx = int(M["m10"] / M["m00"])
-        cy = int(M["m01"] / M["m00"])
+        x, y, w, h = cv2.boundingRect(approx)
+        cx = x + w // 2
+        cy = y + h // 2
 
         shape_name = None
 
@@ -88,10 +102,9 @@ def detect_shapes(frame):
             triangle_count += 1
 
         elif len(approx) == 4:
-            x, y, w, h = cv2.boundingRect(approx)
             aspect_ratio = w / float(h)
 
-            if 0.88 <= aspect_ratio <= 1.12:
+            if 0.50 <= aspect_ratio <= 1.30:
                 shape_name = "Stvorec"
                 square_count += 1
             else:
@@ -100,14 +113,23 @@ def detect_shapes(frame):
 
         if shape_name is not None:
             cv2.drawContours(output, [approx], -1, (255, 0, 0), 2)
+
+            # cervena bodka - tazisko
             cv2.circle(output, (cx, cy), 4, (0, 0, 255), -1)
 
-            cv2.putText(output, shape_name, (cx - 50, cy - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 0, 0), 2)
+            cv2.putText(
+                output,
+                shape_name,
+                (cx - 50, cy - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (255, 0, 0),
+                2
+            )
 
-            cv2.putText(output, f"S({cx},{cy})", (cx + 10, cy + 15),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 1)
-
+    # =========================
+    # 3. VYPIS POCTOV
+    # =========================
     info_y = 30
     step = 30
 
