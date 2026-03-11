@@ -60,7 +60,7 @@ def main():
             frame = frame[:, :, :3]
 
             # RGB -> BGR pre OpenCV
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            #frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             if RESIZE_TO is not None:
                 frame = cv2.resize(frame, RESIZE_TO, interpolation=cv2.INTER_AREA)
