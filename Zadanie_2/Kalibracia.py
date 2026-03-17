@@ -4,21 +4,21 @@ import os
 import glob
 
 CHESSBOARD_SIZE = (7, 5)
-
-
 SQUARE_SIZE = 0.024
 
-IMAGES_DIR = "./FOTKY_SACHOVNICA_bez_resize"   
-OUT_DIR = "./CALIB_OUT5"
+IMAGES_DIR = "./FOTKY_SACHOVNICA_bez_resize"
+OUT_DIR = "./CALIB_OUT6"
 os.makedirs(OUT_DIR, exist_ok=True)
 
+# 3D body sachovnice v rovine Z=0
 objp = np.zeros((CHESSBOARD_SIZE[0] * CHESSBOARD_SIZE[1], 3), np.float32)
 objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1, 2)
 objp *= float(SQUARE_SIZE)
 
-objpoints = []  
-imgpoints = []  
+objpoints = []
+imgpoints = []
 
+# nacitanie obrazkov
 imgs = []
 for ext in ("*.png", "*.jpg", "*.jpeg", "*.bmp", "*.tif", "*.tiff"):
     imgs += glob.glob(os.path.join(IMAGES_DIR, ext))
@@ -45,7 +45,7 @@ for path in imgs:
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if img_size is None:
-        img_size = (gray.shape[1], gray.shape[0])  # (w,h)
+        img_size = (gray.shape[1], gray.shape[0])  # (w, h)
 
     found, corners = cv2.findChessboardCorners(gray, CHESSBOARD_SIZE, flags)
 
@@ -59,6 +59,7 @@ for path in imgs:
     objpoints.append(objp.copy())
     imgpoints.append(corners2)
 
+    # debug obrazok s rohmi
     vis = img.copy()
     cv2.drawChessboardCorners(vis, CHESSBOARD_SIZE, corners2, found)
     cv2.imwrite(os.path.join(OUT_DIR, "corners_" + os.path.basename(path)), vis)
@@ -82,6 +83,7 @@ print("Camera matrix K:\n", K)
 print("Distortion coeffs:\n", dist.ravel())
 print(f"fx={fx:.3f}, fy={fy:.3f}, cx={cx:.3f}, cy={cy:.3f}")
 
+# ulozenie kalibracie
 np.savez(os.path.join(OUT_DIR, "calibration.npz"),
          K=K, dist=dist, img_size=np.array(img_size))
 
@@ -96,17 +98,48 @@ print("\nUložené:")
 print(" -", os.path.join(OUT_DIR, "calibration.npz"))
 print(" -", os.path.join(OUT_DIR, "calibration.yaml"))
 
-# ====== UNDISTORT ====== 
+# ====== UNDISTORT DEMO s getOptimalNewCameraMatrix ======
 sample_path = imgs[0]
 img = cv2.imread(sample_path)
-und = cv2.undistort(img, K, dist)
 
-combo = np.hstack([img, und])
-out_demo = os.path.join(OUT_DIR, "undistort_demo.png")
-cv2.imwrite(out_demo, combo)
-print("Undistortion demo uložené:", out_demo)
+h, w = img.shape[:2]
 
-cv2.namedWindow("Undistort demo (orig | undist)", cv2.WINDOW_NORMAL)
-cv2.imshow("Undistort demo (orig | undist)", combo)
+# alpha:
+# 0 -> minimum ciernych okrajov
+# 1 -> zachova co najviac obrazu
+new_camera_mtx, roi = cv2.getOptimalNewCameraMatrix(K, dist, (w, h), 1, (w, h))
+
+# odstránenie skreslenia s novou maticou
+und = cv2.undistort(img, K, dist, None, new_camera_mtx)
+
+# orezanie podľa ROI
+x, y, roi_w, roi_h = roi
+und_cropped = und[y:y + roi_h, x:x + roi_w]
+
+# pre porovnanie vytvorime aj verziu bez orezu
+combo_full = np.hstack([img, und])
+
+# pre porovnanie s orezanou verziou musime zrezat aj povodny obraz na rovnaky ROI
+img_cropped = img[y:y + roi_h, x:x + roi_w]
+combo_cropped = np.hstack([img_cropped, und_cropped])
+
+out_demo_full = os.path.join(OUT_DIR, "undistort_demo_full.png")
+out_demo_cropped = os.path.join(OUT_DIR, "undistort_demo_cropped.png")
+
+cv2.imwrite(out_demo_full, combo_full)
+cv2.imwrite(out_demo_cropped, combo_cropped)
+
+print("Undistortion demo uložené:")
+print(" -", out_demo_full)
+print(" -", out_demo_cropped)
+print("ROI:", roi)
+print("New camera matrix:\n", new_camera_mtx)
+
+cv2.namedWindow("Undistort demo full (orig | undist)", cv2.WINDOW_NORMAL)
+cv2.imshow("Undistort demo full (orig | undist)", combo_full)
+
+cv2.namedWindow("Undistort demo cropped (orig ROI | undist ROI)", cv2.WINDOW_NORMAL)
+cv2.imshow("Undistort demo cropped (orig ROI | undist ROI)", combo_cropped)
+
 cv2.waitKey(0)
 cv2.destroyAllWindows()
