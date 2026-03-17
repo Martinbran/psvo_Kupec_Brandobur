@@ -2,7 +2,7 @@ from ximea import xiapi
 import cv2
 import numpy as np
 
-EXPOSURE_US = 5000
+EXPOSURE_US = 50000
 RESIZE_TO = (1200, 900)
 WINDOW_NAME = "Detekcia tvarov - XIMEA"
 
@@ -97,7 +97,7 @@ def detect_shapes(frame):
         # 2. STVOREC / OBDLZNIK
         # =========================
         elif len(approx) == 4:
-            if 0.50 <= aspect_ratio <= 1.30:
+            if 0.70 <= aspect_ratio <= 1.20:
                 square_count += 1
                 shape_name = "Stvorec"
                 shape_color = COLOR_SQUARE
@@ -122,7 +122,7 @@ def detect_shapes(frame):
         # =========================
         # 3. KRUZNICA / ELIPSA
         # =========================
-        elif len(approx) > 4 and circularity > 0.78 and 0.75 <= aspect_ratio <= 1.25 and len(cnt) >= 5:
+        elif len(approx) > 4 and circularity > 0.5 and 0.5 <= aspect_ratio <= 1.5 and len(cnt) >= 5:
             circle_count += 1
 
             ellipse = cv2.fitEllipse(cnt)

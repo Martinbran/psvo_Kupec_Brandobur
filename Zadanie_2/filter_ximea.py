@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 #EXPOSURE_US = 500000
-EXPOSURE_US = 5000
+EXPOSURE_US = 50000
 RESIZE_TO = (1200, 900)   # alebo None
 WINDOW_ORIGINAL = "Povodny obraz - XIMEA"
 WINDOW_MASK = "Maska cervenej"
@@ -57,11 +57,7 @@ def main():
             cam.get_image(img)
             frame = img.get_image_data_numpy()
 
-            # XI_RGB32 -> nechame len RGB kanaly
             frame = frame[:, :, :3]
-
-            # RGB -> BGR pre OpenCV
-            #frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             if RESIZE_TO is not None:
                 frame = cv2.resize(frame, RESIZE_TO, interpolation=cv2.INTER_AREA)
