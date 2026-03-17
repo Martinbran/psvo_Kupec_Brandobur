@@ -12,23 +12,23 @@ stable_result = None
 STABLE_FRAMES = 3
 
 # farby v BGR
-COLOR_CIRCLE = (0, 255, 0)        # zelena
-COLOR_TRIANGLE = (0, 255, 255)    # zlta
-COLOR_SQUARE = (255, 0, 0)        # modra
-COLOR_RECTANGLE = (255, 0, 255)   # fialova
-COLOR_CENTER = (0, 0, 255)        # cervena
-COLOR_TEXT = (255, 255, 255)      # biela
+COLOR_CIRCLE = (0, 255, 0)        
+COLOR_TRIANGLE = (0, 255, 255)   
+COLOR_SQUARE = (255, 0, 0)        
+COLOR_RECTANGLE = (255, 0, 255)   
+COLOR_CENTER = (0, 0, 255)        
+COLOR_TEXT = (255, 255, 255)      
 
 
 def detect_shapes(frame):
     output = frame.copy()
 
-    # grayscale len pre pomocne spracovanie
+    # grayscale
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray_blur = cv2.GaussianBlur(gray, (5, 5), 0)
     gray_blur = cv2.medianBlur(gray_blur, 5)
 
-    # HSV maska - farebne papiere maju vyssiu saturaciu ako stena
+    # HSV maska
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     saturation = hsv[:, :, 1]
 
@@ -195,7 +195,6 @@ def main():
             cam.get_image(img)
             frame = img.get_image_data_numpy()
 
-            # pre tvoju kameru toto dava spravne farby
             frame = frame[:, :, :3]
 
             if RESIZE_TO is not None:

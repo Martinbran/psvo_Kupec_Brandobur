@@ -3,28 +3,22 @@ import numpy as np
 import os
 import glob
 
-# ====== NASTAV SI PODĽA SVOJEJ ŠACHOVNICE ======
-# (počet VNÚTORNÝCH rohov: columns, rows)
 CHESSBOARD_SIZE = (7, 5)
 
-# veľkosť štvorca (nemá vplyv na fx/fy/cx/cy v pixeloch, ale je dobré mať reálnu)
-# napr. 24 mm -> 0.024
+
 SQUARE_SIZE = 0.024
-# ==============================================
 
 IMAGES_DIR = "./FOTKY_SACHOVNICA_bez_resize"   
-OUT_DIR = "./CALIB_OUT4"
+OUT_DIR = "./CALIB_OUT5"
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# 3D body šachovnice v rovine Z=0
 objp = np.zeros((CHESSBOARD_SIZE[0] * CHESSBOARD_SIZE[1], 3), np.float32)
 objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0], 0:CHESSBOARD_SIZE[1]].T.reshape(-1, 2)
 objp *= float(SQUARE_SIZE)
 
-objpoints = []  # 3D body
-imgpoints = []  # 2D body
+objpoints = []  
+imgpoints = []  
 
-# načítaj obrázky
 imgs = []
 for ext in ("*.png", "*.jpg", "*.jpeg", "*.bmp", "*.tif", "*.tiff"):
     imgs += glob.glob(os.path.join(IMAGES_DIR, ext))
@@ -65,7 +59,6 @@ for path in imgs:
     objpoints.append(objp.copy())
     imgpoints.append(corners2)
 
-    # ulož debug obrázok s rohmi
     vis = img.copy()
     cv2.drawChessboardCorners(vis, CHESSBOARD_SIZE, corners2, found)
     cv2.imwrite(os.path.join(OUT_DIR, "corners_" + os.path.basename(path)), vis)
@@ -89,11 +82,9 @@ print("Camera matrix K:\n", K)
 print("Distortion coeffs:\n", dist.ravel())
 print(f"fx={fx:.3f}, fy={fy:.3f}, cx={cx:.3f}, cy={cy:.3f}")
 
-# ulož NPZ
 np.savez(os.path.join(OUT_DIR, "calibration.npz"),
          K=K, dist=dist, img_size=np.array(img_size))
 
-# ulož YAML (FileStorage)
 fs = cv2.FileStorage(os.path.join(OUT_DIR, "calibration.yaml"), cv2.FILE_STORAGE_WRITE)
 fs.write("image_width", int(img_size[0]))
 fs.write("image_height", int(img_size[1]))
@@ -105,7 +96,7 @@ print("\nUložené:")
 print(" -", os.path.join(OUT_DIR, "calibration.npz"))
 print(" -", os.path.join(OUT_DIR, "calibration.yaml"))
 
-# ====== UNDISTORT DEMO na 1 fotke ======
+# ====== UNDISTORT ====== 
 sample_path = imgs[0]
 img = cv2.imread(sample_path)
 und = cv2.undistort(img, K, dist)
