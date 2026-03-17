@@ -2,7 +2,7 @@ from ximea import xiapi
 import cv2
 import numpy as np
 
-EXPOSURE_US = 500000
+EXPOSURE_US = 5000
 RESIZE_TO = (1200, 900)
 WINDOW_NAME = "Detekcia tvarov - XIMEA"
 
@@ -10,6 +10,14 @@ WINDOW_NAME = "Detekcia tvarov - XIMEA"
 last_counts = []
 stable_result = None
 STABLE_FRAMES = 3
+
+# farby v BGR
+COLOR_CIRCLE = (0, 255, 0)        # zelena
+COLOR_TRIANGLE = (0, 255, 255)    # zlta
+COLOR_SQUARE = (255, 0, 0)        # modra
+COLOR_RECTANGLE = (255, 0, 255)   # fialova
+COLOR_CENTER = (0, 0, 255)        # cervena
+COLOR_TEXT = (255, 255, 255)      # biela
 
 
 def detect_shapes(frame):
@@ -72,8 +80,8 @@ def detect_shapes(frame):
         if len(approx) == 3:
             triangle_count += 1
 
-            cv2.drawContours(output, [approx], -1, (255, 0, 0), 2)
-            cv2.circle(output, (cx, cy), 4, (0, 0, 255), -1)
+            cv2.drawContours(output, [approx], -1, COLOR_TRIANGLE, 2)
+            cv2.circle(output, (cx, cy), 4, COLOR_CENTER, -1)
 
             cv2.putText(
                 output,
@@ -81,7 +89,7 @@ def detect_shapes(frame):
                 (cx - 65, cy - 12),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
-                (255, 0, 0),
+                COLOR_TRIANGLE,
                 2
             )
 
@@ -92,12 +100,14 @@ def detect_shapes(frame):
             if 0.50 <= aspect_ratio <= 1.30:
                 square_count += 1
                 shape_name = "Stvorec"
+                shape_color = COLOR_SQUARE
             else:
                 rectangle_count += 1
                 shape_name = "Obdlznik"
+                shape_color = COLOR_RECTANGLE
 
-            cv2.drawContours(output, [approx], -1, (255, 0, 0), 2)
-            cv2.circle(output, (cx, cy), 4, (0, 0, 255), -1)
+            cv2.drawContours(output, [approx], -1, shape_color, 2)
+            cv2.circle(output, (cx, cy), 4, COLOR_CENTER, -1)
 
             cv2.putText(
                 output,
@@ -105,7 +115,7 @@ def detect_shapes(frame):
                 (cx - 50, cy - 12),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
-                (255, 0, 0),
+                shape_color,
                 2
             )
 
@@ -116,8 +126,8 @@ def detect_shapes(frame):
             circle_count += 1
 
             ellipse = cv2.fitEllipse(cnt)
-            cv2.ellipse(output, ellipse, (0, 255, 0), 2)
-            cv2.circle(output, (cx, cy), 4, (0, 0, 255), -1)
+            cv2.ellipse(output, ellipse, COLOR_CIRCLE, 2)
+            cv2.circle(output, (cx, cy), 4, COLOR_CENTER, -1)
 
             cv2.putText(
                 output,
@@ -125,7 +135,7 @@ def detect_shapes(frame):
                 (cx - 50, cy - 18),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
-                (0, 255, 0),
+                COLOR_CIRCLE,
                 2
             )
 
@@ -136,27 +146,27 @@ def detect_shapes(frame):
     step = 30
 
     cv2.putText(output, "Detegovane tvary:", (10, info_y),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.7, COLOR_TEXT, 2)
     info_y += step
 
     cv2.putText(output, f"Kruznice: {circle_count}", (10, info_y),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 2)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.65, COLOR_CIRCLE, 2)
     info_y += step
 
     cv2.putText(output, f"Trojuholniky: {triangle_count}", (10, info_y),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 0, 0), 2)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.65, COLOR_TRIANGLE, 2)
     info_y += step
 
     cv2.putText(output, f"Stvorce: {square_count}", (10, info_y),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 0, 0), 2)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.65, COLOR_SQUARE, 2)
     info_y += step
 
     cv2.putText(output, f"Obdlzniky: {rectangle_count}", (10, info_y),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 0, 0), 2)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.65, COLOR_RECTANGLE, 2)
     info_y += step
 
     cv2.putText(output, "Q = quit", (10, info_y + 10),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.65, (255, 255, 255), 2)
+                cv2.FONT_HERSHEY_SIMPLEX, 0.65, COLOR_TEXT, 2)
 
     counts = (circle_count, triangle_count, square_count, rectangle_count)
     return output, counts

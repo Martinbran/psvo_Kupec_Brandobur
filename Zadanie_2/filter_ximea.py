@@ -2,7 +2,8 @@ from ximea import xiapi
 import cv2
 import numpy as np
 
-EXPOSURE_US = 500000
+#EXPOSURE_US = 500000
+EXPOSURE_US = 5000
 RESIZE_TO = (1200, 900)   # alebo None
 WINDOW_ORIGINAL = "Povodny obraz - XIMEA"
 WINDOW_MASK = "Maska cervenej"
