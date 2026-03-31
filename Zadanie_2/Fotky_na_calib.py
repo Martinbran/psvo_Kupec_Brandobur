@@ -4,7 +4,7 @@ import numpy as np
 import os
 import shutil
 
-SAVE_DIR = "./FOTKY_SACHOVNICA_bez_resize"
+SAVE_DIR = "./FOTKY_pre_ulohu_3"
 RESIZE_TO = (None)   # ak nechceš resize, nastav na None
 EXPOSURE_US = 500000
 NUM_SHOTS = 15

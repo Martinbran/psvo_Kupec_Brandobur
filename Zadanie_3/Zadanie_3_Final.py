@@ -23,7 +23,7 @@ import time
 # ============================================================
 # 0.  NAČÍTANIE OBRÁZKA
 # ============================================================
-IMAGES_DIR = "./Fotky/Farebne_jablka"
+IMAGES_DIR = "./Fotky/FOTKY_kamera"
 
 def load_image():
     """Nájde prvý obrázok v ./Fotky a vráti ho."""
