@@ -23,7 +23,7 @@ import time
 # ============================================================
 # 0.  NAČÍTANIE OBRÁZKA
 # ============================================================
-IMAGES_DIR = "./Fotky/Nizky_kontrast"
+IMAGES_DIR = "./Fotky/Farebne_jablka"
 
 def load_image():
     """Nájde prvý obrázok v ./Fotky a vráti ho."""
@@ -431,7 +431,7 @@ def figure_4_clahe(gray, clip_limit=2.0, grid_size=(8, 8)):
     _draw_hist(fig.add_subplot(gs[1, 1]), cl_man, 'darkorange', "Hist – manuálna CLAHE")
     _draw_hist(fig.add_subplot(gs[1, 2]), cl_cv,  'steelblue',  "Hist – OpenCV CLAHE")
 
-    return fig, cl_man, cl_cv
+    return fig, cl_man, cl_cv, t_man, t_cv
 
 
 # ============================================================
@@ -460,24 +460,52 @@ def main():
     fig3 = figure_3_ekvalizacia_farba(bgr)
 
     print("\n===== FIGURE 4: CLAHE =====")
-    fig4, cl_man, cl_cv = figure_4_clahe(gray, clip_limit=2.0, grid_size=(8, 8))
+    fig4, cl_man, cl_cv, t_cl_man, t_cl_cv = figure_4_clahe(gray, clip_limit=2.0, grid_size=(8, 8))
 
     # ── Zhrnutie ──
-    eq_man = manual_equalize_gray(gray)
-    eq_cv  = opencv_equalize_gray(gray)
+    t0 = time.time(); eq_man = manual_equalize_gray(gray); t_eq_man = time.time() - t0
+    t0 = time.time(); eq_cv  = opencv_equalize_gray(gray); t_eq_cv  = time.time() - t0
     diff_eq = np.mean(np.abs(eq_man.astype(int) - eq_cv.astype(int)))
     diff_cl = np.mean(np.abs(cl_man.astype(int) - cl_cv.astype(int)))
 
-    print("\n" + "=" * 55)
-    print("ZHODNOTENIE")
-    print("=" * 55)
-    print(f"  Histogram:   manuálny == OpenCV (presná zhoda)")
-    print(f"  Ekvalizácia: priem. |diff| = {diff_eq:.2f}")
-    print(f"  CLAHE:       priem. |diff| = {diff_cl:.2f}")
-    print(f"  Výpočtová náročnosť:")
-    print(f"    CLAHE manuálna ~100-500x pomalšia ako OpenCV")
-    print(f"    Histogram a eq. sú v NumPy dostatočne rýchle")
-    print("=" * 55)
+    h_man = manual_histogram_fast(gray)
+    h_cv  = opencv_histogram(gray)
+    hist_diff = int(np.sum(np.abs(h_man - h_cv)))
+
+    eq_ratio    = t_eq_man  / t_eq_cv  if t_eq_cv  > 0 else float('inf')
+    clahe_ratio = t_cl_man  / t_cl_cv  if t_cl_cv  > 0 else float('inf')
+
+    lines = [
+        "=" * 60,
+        "STRUČNÉ ZHODNOTENIE ROZDIELOV (Manuálna implementácia vs OpenCV)",
+        "=" * 60,
+        "",
+        "--- PRESNOSŤ ---",
+        f"  Histogram (gray):   súčet |diff| hodnôt = {hist_diff}  (0 = presná zhoda)",
+        f"  Ekvalizácia (gray): priemerný |diff| pixelu = {diff_eq:.4f}",
+        f"  CLAHE (gray):       priemerný |diff| pixelu = {diff_cl:.4f}",
+        "",
+        "--- ŠUM / ARTEFAKTY ---",
+        "  Histogram:   žiadne rozdiely – bincount je deterministický.",
+        f"  Ekvalizácia: odchýlka {diff_eq:.4f} pix je spôsobená zaokrúhľovaním",
+        "               v LUT; vizuálne nerozoznateľné.",
+        f"  CLAHE:       odchýlka {diff_cl:.4f} pix pochádza z iného spôsobu",
+        "               interpolácie dlaždíc; jemné hrany sa môžu mierne líšiť.",
+        "",
+        "--- VÝPOČTOVÁ NÁROČNOSŤ ---",
+        f"  Ekvalizácia – manuálna: {t_eq_man*1000:.2f} ms   OpenCV: {t_eq_cv*1000:.2f} ms   "
+        f"(pomer {eq_ratio:.1f}×)",
+        f"  CLAHE        – manuálna: {t_cl_man:.3f} s     OpenCV: {t_cl_cv*1000:.2f} ms   "
+        f"(pomer {clahe_ratio:.0f}×)",
+        "  Histogram a ekvalizácia sú v NumPy dostatočne rýchle.",
+        "  Manuálna CLAHE je výrazne pomalšia kvôli Python-level slučkám",
+        "  nad dlaždicami; OpenCV je implementovaná v C++.",
+        "",
+        "=" * 60,
+    ]
+
+    summary = "\n".join(lines)
+    print("\n" + summary)
 
     ROOT_OUT = "./Vysledky"
     os.makedirs(ROOT_OUT, exist_ok=True)
@@ -490,7 +518,11 @@ def main():
     fig2.savefig(os.path.join(OUT, "2_ekvalizacia_gray.png"),  dpi=150)
     fig3.savefig(os.path.join(OUT, "3_ekvalizacia_farba.png"), dpi=150)
     fig4.savefig(os.path.join(OUT, "4_clahe.png"),             dpi=150)
-    print(f"\nGrafy uložené do: {OUT}/")
+
+    txt_path = os.path.join(OUT, "zhodnotenie.txt")
+    with open(txt_path, "w", encoding="utf-8") as f:
+        f.write(summary + "\n")
+    print(f"\nGrafy a zhodnotenie uložené do: {OUT}/")
 
     plt.show()
 

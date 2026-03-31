@@ -1,0 +1,24 @@
+============================================================
+STRUČNÉ ZHODNOTENIE ROZDIELOV (Manuálna implementácia vs OpenCV)
+============================================================
+
+--- PRESNOSŤ ---
+  Histogram (gray):   súčet |diff| hodnôt = 0  (0 = presná zhoda)
+  Ekvalizácia (gray): priemerný |diff| pixelu = 0.0000
+  CLAHE (gray):       priemerný |diff| pixelu = 1.4919
+
+--- ŠUM / ARTEFAKTY ---
+  Histogram:   žiadne rozdiely – bincount je deterministický.
+  Ekvalizácia: odchýlka 0.0000 pix je spôsobená zaokrúhľovaním
+               v LUT; vizuálne nerozoznateľné.
+  CLAHE:       odchýlka 1.4919 pix pochádza z iného spôsobu
+               interpolácie dlaždíc; jemné hrany sa môžu mierne líšiť.
+
+--- VÝPOČTOVÁ NÁROČNOSŤ ---
+  Ekvalizácia – manuálna: 1.21 ms   OpenCV: 0.44 ms   (pomer 2.8×)
+  CLAHE        – manuálna: 0.025 s     OpenCV: 0.32 ms   (pomer 78×)
+  Histogram a ekvalizácia sú v NumPy dostatočne rýchle.
+  Manuálna CLAHE je výrazne pomalšia kvôli Python-level slučkám
+  nad dlaždicami; OpenCV je implementovaná v C++.
+
+============================================================
