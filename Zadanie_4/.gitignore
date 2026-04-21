@@ -1,0 +1,19 @@
+# Ignore everything
+*
+
+# Keep this file
+!.gitignore
+
+# Keep model
+!Auticko_model/
+!Auticko_model/**
+
+# Keep training outputs
+!Trening/
+!Trening/**
+
+# Keep selected files
+!PVSO_zad_4.pdf
+!trening.png
+!trening_viac.png
+!Postup.md
