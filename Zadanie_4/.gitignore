@@ -5,78 +5,17 @@
 !.gitignore
 
 # =========================
-# DOKUMENTY
+# KONKRÉTNE SÚBORY
 # =========================
-!*.pdf
-!*.docx
-
-# =========================
-# PRIEČINKY S TRÉNINGOM
-# =========================
-!Trening*/
-!Trening*/**
-
-# =========================
-# OBRÁZKY
-# =========================
-!*.png
-!*.jpg
-
-# =========================
-# MARKDOWN
-# =========================
-!*.md# Ignore everything
-*
-
-# Keep this file
-!.gitignore
-
-# =========================
-# DOKUMENTY (chceš pushnúť)
-# =========================
-!*.pdf
-!*.docx
-
-# Konkrétne názvy (ak chceš mať istotu)
-!GS_postup*.docx
-!GS_postup*.pdf
+!GS_postup_statistika.docx
+!GS_postup_statistika.pdf
 !PVSO_zad_4.pdf
 
 # =========================
-# PRIEČINKY S TRÉNINGOM
+# KONKRÉTNE PRIEČINKY
 # =========================
-!Trening*/
-!Trening*/**
 !Trening_auticko/
 !Trening_auticko/**
+
 !Trening_bike/
 !Trening_bike/**
-
-# =========================
-# OBRÁZKY (ak chceš)
-# =========================
-!*.png
-!*.jpg
-
-# =========================
-# MARKDOWN / TEXT (postup)
-# =========================
-!*.md# Ignore everything
-*
-
-# Keep this file
-!.gitignore
-
-# Keep model
-!Auticko_model/
-!Auticko_model/**
-
-# Keep training outputs
-!Trening/
-!Trening/**
-
-# Keep selected files
-!PVSO_zad_4.pdf
-!trening.png
-!trening_viac.png
-!Postup.md
