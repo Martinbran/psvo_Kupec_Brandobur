@@ -4,6 +4,42 @@
 # Keep this file
 !.gitignore
 
+# =========================
+# DOKUMENTY (chceš pushnúť)
+# =========================
+!*.pdf
+!*.docx
+
+# Konkrétne názvy (ak chceš mať istotu)
+!GS_postup*.docx
+!GS_postup*.pdf
+!PVSO_zad_4.pdf
+
+# =========================
+# PRIEČINKY S TRÉNINGOM
+# =========================
+!Trening*/
+!Trening*/**
+!Trening_auticko/
+!Trening_auticko/**
+!Trening_bike/
+!Trening_bike/**
+
+# =========================
+# OBRÁZKY (ak chceš)
+# =========================
+!*.png
+!*.jpg
+
+# =========================
+# MARKDOWN / TEXT (postup)
+# =========================
+!*.md# Ignore everything
+*
+
+# Keep this file
+!.gitignore
+
 # Keep model
 !Auticko_model/
 !Auticko_model/**
